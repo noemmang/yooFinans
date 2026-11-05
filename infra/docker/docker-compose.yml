@@ -1,0 +1,25 @@
+# Servicios de desarrollo local
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: yoofinans-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el fichero .env}
+    # Solo accesible desde tu propio equipo
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+    # Los datos sobreviven al reiniciar o recrear el contenedor
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Docker marca el servicio como healthy cuando PostgreSQL acepta conexiones
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
