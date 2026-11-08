@@ -1,3 +1,26 @@
+# Configuración base de YooFinans; los datos de conexión llegan por variables de entorno
 spring:
   application:
     name: yoofinans
+  # En local lee infra/docker/.env (ruta relativa a backend/); en producción las variables vienen del entorno
+  config:
+    import: optional:file:../infra/docker/.env[.properties]
+  datasource:
+    # Conexión a PostgreSQL; el puerto real de cada equipo lo da el .env, no el código
+    url: jdbc:postgresql://${POSTGRES_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/${POSTGRES_DB:yoofinans}
+    username: ${POSTGRES_USER:yoofinans}
+    # Sin valor por defecto a propósito: si falta la contraseña, la aplicación no arranca
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    hibernate:
+      # El esquema lo gestiona Flyway; Hibernate solo valida que coincide
+      ddl-auto: validate
+    # Evita mantener la sesión de base de datos abierta durante toda la petición
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo se expone el estado de salud
+        include: health
